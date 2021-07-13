@@ -16,6 +16,7 @@ cd test_no_std
 export SGX_SDK=/opt/intel/sgxsdk
 make
 ```
+
 If it builds without `std` collisions, you're good. Linker errors can be safely ignored.
 
 
