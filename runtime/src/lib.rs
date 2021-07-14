@@ -216,6 +216,10 @@ impl pallet_sudo::Config for Runtime {
 	type Call = Call;
 }
 
+impl pallet-sgx-account-linker::Config for for Runtime {
+	type Event = Event;
+}
+
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
@@ -227,6 +231,7 @@ construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
+		SgxAccountLinker: pallet-sgx-account-linker::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
