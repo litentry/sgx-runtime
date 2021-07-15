@@ -216,6 +216,11 @@ impl pallet_sudo::Config for Runtime {
 	type Call = Call;
 }
 
+impl pallet_sgx_account_linker for Runtime {
+	type Event = Event;
+	type WeightInfo = pallet_sgx_account_linker::weights::SubstrateWeight<Runtime>;
+}
+
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
@@ -227,6 +232,7 @@ construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
+		SgxAccountLinker: pallet_sgx_account_linker::{Pallet, Call, Config<T>, Storage, Event<T>},
 	}
 );
 
