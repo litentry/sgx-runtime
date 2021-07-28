@@ -21,7 +21,7 @@ version = "2.0.0"
 hex-literal = { optional = true, version = '0.3.1' }
 serde = { features = ['derive'], optional = true, version = '1.0.101' }
 
-pallet-sgx-account-linker = { defualt-features = false, path = "../../litentry-pallets/pallets/sgx-account-linker"}
+pallet-sgx-account-linker = { defualt-features = false, path = "../sgx-account-linker"}
 
 # Substrate dependencies
 frame-benchmarking = { default-features = false, optional = true, git = "https://github.com/paritytech/substrate.git", branch = "master" }
