@@ -5,7 +5,6 @@ members = [
     'runtime',
     'substrate-sgx/sp-io',
     'substrate-sgx/externalities',
-    'sgx-account-linker',
     'test_no_std'
 ]
 

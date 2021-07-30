@@ -2125,6 +2125,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "sp-timestamp"
+version = "3.0.0"
+source = "git+https://github.com/paritytech/substrate.git?branch=master#df1165d7b47d43f7b5032512ad41ac8ab2ead117"
+dependencies = [
+ "async-trait",
+ "futures-timer",
+ "log 0.4.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "parity-scale-codec 2.1.3",
+ "sp-api",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-std",
+ "thiserror",
+ "wasm-timer",
+]
+
+[[package]]
 name = "pallet-timestamp"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate.git?branch=master#df1165d7b47d43f7b5032512ad41ac8ab2ead117"
@@ -2133,10 +2150,9 @@ dependencies = [
  "frame-support",
  "frame-system",
  "impl-trait-for-tuples",
- "log",
- "parity-scale-codec",
+ "log 0.4.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "parity-scale-codec 2.1.3",
  "sp-inherents",
- "sp-io",
  "sp-runtime",
  "sp-std",
  "sp-timestamp",
@@ -3833,23 +3849,6 @@ dependencies = [
  "serde",
  "sp-debug-derive",
  "sp-std",
-]
-
-[[package]]
-name = "sp-timestamp"
-version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate.git?branch=master#df1165d7b47d43f7b5032512ad41ac8ab2ead117"
-dependencies = [
- "async-trait",
- "futures-timer",
- "log",
- "parity-scale-codec",
- "sp-api",
- "sp-inherents",
- "sp-runtime",
- "sp-std",
- "thiserror",
- "wasm-timer",
 ]
 
 [[package]]
