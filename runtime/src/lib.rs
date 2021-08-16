@@ -14,10 +14,11 @@
 
 use pallet_transaction_payment::CurrencyAdapter;
 use sp_api::impl_runtime_apis;
-use sp_runtime::traits::{
-	AccountIdLookup, BlakeTwo256, Block as BlockT, IdentifyAccount, Verify,
+use sp_runtime::{
+	create_runtime_str, generic,
+	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, IdentifyAccount, Verify},
+	MultiSignature,
 };
-use sp_runtime::{create_runtime_str, generic, MultiSignature};
 use sp_std::prelude::*;
 use sp_version::RuntimeVersion;
 
@@ -36,6 +37,9 @@ pub use pallet_timestamp::Call as TimestampCall;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
+
+/// litentry pallets
+pub use pallet_sgx_account_linker;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -120,7 +124,7 @@ parameter_types! {
 
 impl frame_system::Config for Runtime {
 	/// The basic call filter to use in dispatchable.
-	type BaseCallFilter = ();
+	type BaseCallFilter = frame_support::traits::AllowAll;
 	/// Block & extrinsics weights: base values and limits.
 	type BlockWeights = BlockWeights;
 	/// The maximum length of a block (in bytes).
@@ -232,7 +236,7 @@ construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
-		SgxAccountLinker: pallet_sgx_account_linker::{Pallet, Call, Config<T>, Storage, Event<T>},
+		SgxAccountLiner: pallet_sgx_account_linker::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
