@@ -220,7 +220,7 @@ impl pallet_sudo::Config for Runtime {
 	type Call = Call;
 }
 
-impl pallet_sgx_account_linker for Runtime {
+impl pallet_sgx_account_linker::Config for Runtime {
 	type Event = Event;
 	type WeightInfo = pallet_sgx_account_linker::weights::SubstrateWeight<Runtime>;
 }
