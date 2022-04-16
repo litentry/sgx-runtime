@@ -30,6 +30,7 @@
 
 use pallet_transaction_payment::CurrencyAdapter;
 use sp_api::impl_runtime_apis;
+use sp_core::OpaqueMetadata;
 use sp_runtime::{
 	create_runtime_str, generic,
 	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, IdentifyAccount, Verify},
@@ -89,7 +90,7 @@ pub type Executive = frame_executive::Executive<
 	Block,
 	frame_system::ChainContext<Runtime>,
 	Runtime,
-	AllPallets,
+	AllPalletsReversedWithSystemFirst,
 >;
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -146,6 +147,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
+	state_version: 0,
 };
 
 pub const MILLISECS_PER_BLOCK: u64 = 6000;
@@ -221,6 +223,8 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = SS58Prefix;
 	/// The set code logic, just the default since we're not a parachain.
 	type OnSetCode = ();
+	/// The maximum number of consumers allowed on a single account.
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_types! {
@@ -276,9 +280,14 @@ impl pallet_parentchain::Config for Runtime {
 	type WeightInfo = ();
 }
 
+parameter_types! {
+	pub const MaxLinkedAccountNumber: u32 = 3;
+}
+
 impl pallet_sgx_account_linker::Config for Runtime {
 	type Event = Event;
 	type WeightInfo = pallet_sgx_account_linker::weights::SubstrateWeight<Runtime>;
+	type MaxLinkedAccountNumber = MaxLinkedAccountNumber;
 }
 
 construct_runtime!(
@@ -311,4 +320,11 @@ impl_runtime_apis! {
 			Executive::initialize_block(header)
 		}
 	}
+
+	impl sp_api::Metadata<Block> for Runtime {
+		fn metadata() -> OpaqueMetadata {
+			OpaqueMetadata::new(Runtime::metadata().into())
+		}
+	}
+
 }

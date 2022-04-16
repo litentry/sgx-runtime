@@ -176,7 +176,7 @@ fn test_insert_eth_address() {
 		let mut gen = Random {};
 		let mut expected_vec = Vec::new();
 
-		for i in 0..(MAX_ETH_LINKS) {
+		for i in 0..(MaxLinkedAccountNumber::get() as usize) {
 			let key_pair = gen.generate();
 
 			let msg = generate_eth_raw_message(&account, block_number + i as u32);
@@ -213,7 +213,7 @@ fn test_update_eth_address() {
 		let layer_one_blocknumber: u32 = 10;
 
 		let mut gen = Random {};
-		for i in 0..(MAX_ETH_LINKS) {
+		for i in 0..(MaxLinkedAccountNumber::get() as usize) {
 			let key_pair = gen.generate();
 			let msg = generate_eth_raw_message(&account, block_number + i as u32);
 			let sig = generate_sig(&key_pair, &msg);
@@ -262,7 +262,7 @@ fn test_eth_address_pool_overflow() {
 		let mut gen = Random {};
 		let mut expected_vec = Vec::new();
 
-		for index in 0..(MAX_ETH_LINKS * 2) {
+		for index in 0..(MaxLinkedAccountNumber::get() as usize * 2) {
 			let key_pair = gen.generate();
 
 			let msg = generate_eth_raw_message(&account, block_number);
@@ -277,13 +277,13 @@ fn test_eth_address_pool_overflow() {
 				sig
 			));
 
-			if index < MAX_ETH_LINKS {
+			if index < MaxLinkedAccountNumber::get() as usize {
 				expected_vec.push(key_pair.address().to_fixed_bytes());
 			} else {
-				expected_vec[MAX_ETH_LINKS - 1] = key_pair.address().to_fixed_bytes();
+				expected_vec[MaxLinkedAccountNumber::get() as usize - 1] = key_pair.address().to_fixed_bytes();
 			}
 		}
-		assert_eq!(SgxAccountLinker::eth_addresses(&account).len(), MAX_ETH_LINKS);
+		assert_eq!(SgxAccountLinker::eth_addresses(&account).len(), MaxLinkedAccountNumber::get() as usize);
 		assert_eq!(SgxAccountLinker::eth_addresses(&account), expected_vec);
 	});
 }

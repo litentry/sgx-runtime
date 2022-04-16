@@ -14,9 +14,9 @@ targets = ['x86_64-unknown-linux-gnu']
 # alias "parity-scale-code" to "codec"
 [dependencies.codec]
 default-features = false
-features = ['derive']
+features = ['derive', "max-encoded-len"]
 package = 'parity-scale-codec'
-version = '2.0.0'
+version = '3.0.0'
 
 [dependencies.frame-support]
 default-features = false
@@ -35,13 +35,13 @@ version = '4.0.0-dev'
 default-features = false
 git = "https://github.com/paritytech/substrate.git"
 branch = "master"
-version = '4.0.0-dev'
+version = '6.0.0'
 
 [dependencies.sp-core]
 default-features = false
 git = "https://github.com/paritytech/substrate.git"
 branch = "master"
-version = '4.0.0-dev'
+version = '6.0.0'
 features = ['full_crypto']
 
 [dependencies.sp-runtime]
@@ -49,26 +49,26 @@ default-features = false
 optional = true
 git = "https://github.com/paritytech/substrate.git"
 branch = "master"
-version = '4.0.0-dev'
+version = '6.0.0'
 
 [dependencies.sp-std]
 default-features = false
 git = "https://github.com/paritytech/substrate.git"
 branch = "master"
-version = '4.0.0-dev'
+version = '4.0.0'
 
 [dev-dependencies.sp-runtime]
 default-features = false
 git = "https://github.com/paritytech/substrate.git"
 branch = "master"
-version = '4.0.0-dev'
+version = '6.0.0'
 
 [dependencies]
 
 log = { version = "0.4.14", default-features = false }
 sha2 = { default-features = false, version = "0.9.5" }
 ripemd160 = {default-features = false, version = "0.9.1" }
-scale-info = { version = "1.0", default-features = false, features = ["derive"] }
+scale-info = { version = "2.0.1", default-features = false, features = ["derive"] }
 
 [dev-dependencies]
 

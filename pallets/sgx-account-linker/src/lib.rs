@@ -23,6 +23,7 @@
 //! [`Config`]: ./trait.Config.html
 
 #![cfg_attr(not(feature = "std"), no_std)]
+use scale_info::TypeInfo;
 
 #[cfg(test)]
 mod mock;
@@ -42,7 +43,7 @@ type Signature = [u8; 65];
 #[frame_support::pallet]
 pub mod pallet {
 	use crate::*;
-	use codec::Encode;
+	use codec::{Encode, MaxEncodedLen};
 	use frame_support::{dispatch::DispatchResultWithPostInfo, pallet_prelude::*};
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use sp_core::{ed25519, sr25519};
@@ -50,11 +51,8 @@ pub mod pallet {
 
 	use weights::WeightInfo;
 	pub const EXPIRING_BLOCK_NUMBER_MAX: u32 = 10 * 60 * 24 * 30; // 30 days for 6s per block
-	pub const MAX_ETH_LINKS: usize = 3;
-	pub const MAX_BTC_LINKS: usize = 3;
-	pub const MAX_SUB_LINKS: usize = 3;
 
-	#[derive(Encode, Decode, Clone, Debug, Copy, Eq, PartialEq, TypeInfo)]
+	#[derive(Encode, Decode, Clone, Debug, Copy, Eq, PartialEq, TypeInfo, MaxEncodedLen)]
 	pub enum NetworkType {
 		Kusama,
 		Polkadot,
@@ -69,7 +67,7 @@ pub mod pallet {
 		EcdsaSignature([u8; 65]),
 	}
 
-	#[derive(Encode, Decode, Clone, Debug, Eq, PartialEq, TypeInfo)]
+	#[derive(Encode, Decode, Clone, Debug, Eq, PartialEq, TypeInfo, MaxEncodedLen)]
 	pub struct LinkedSubAccount<AccountId> {
 		network_type: NetworkType,
 		account_id: AccountId,
@@ -79,6 +77,8 @@ pub mod pallet {
 	pub trait Config: frame_system::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type WeightInfo: WeightInfo;
+		#[pallet::constant]
+		type MaxLinkedAccountNumber: Get<u32>;
 	}
 
 	#[pallet::event]
@@ -86,8 +86,6 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Ethereum address successfully linked. \[Lintentry account, Ethereum account\]
 		EthAddressLinked(T::AccountId, Vec<u8>),
-		/// BTC address successfully linked. \[Lintentry account, BTC account\]
-		BtcAddressLinked(T::AccountId, Vec<u8>),
 		/// Substrate based address successfully linked. \[Lintentry account, substrate account\]
 		SubAddressLinked(T::AccountId, LinkedSubAccount<T::AccountId>),
 	}
@@ -124,12 +122,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn eth_addresses)]
 	pub(super) type EthereumLink<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::AccountId, Vec<EthAddress>, ValueQuery>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn btc_addresses)]
-	pub(super) type BitcoinLink<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::AccountId, Vec<Vec<u8>>, ValueQuery>;
+		StorageMap<_, Blake2_128Concat, T::AccountId, BoundedVec<EthAddress, T::MaxLinkedAccountNumber>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn sub_addresses)]
@@ -137,7 +130,7 @@ pub mod pallet {
 		_,
 		Blake2_128Concat,
 		T::AccountId,
-		Vec<LinkedSubAccount<T::AccountId>>,
+		BoundedVec<LinkedSubAccount<T::AccountId>, T::MaxLinkedAccountNumber>,
 		ValueQuery,
 	>;
 
@@ -147,7 +140,7 @@ pub mod pallet {
 		/// of that Ethereum address. The extrinsic supposed to be executed in the sgx.
 		///
 		/// The runtime needs to ensure that a malicious index can be handled correctly.
-		/// Currently, when vec.len > MAX_ETH_LINKS, replacement will always happen at the final index.
+		/// Currently, when vec.len > MaxLinkedAccountNumber, replacement will always happen at the final index.
 		/// Otherwise it will use the next new slot unless index is valid against a currently available slot.
 		///
 		/// Parameters:
@@ -185,7 +178,7 @@ pub mod pallet {
 		/// Link a substrate based address to a Litentry address
 		///
 		/// The runtime needs to ensure that a malicious index can be handled correctly.
-		/// Currently, when vec.len > MAX_ETH_LINKS, replacement will always happen at the final index.
+		/// Currently, when vec.len > MaxLinkedAccountNumber, replacement will always happen at the final index.
 		/// Otherwise it will use the next new slot unless index is valid against a currently available slot.
 		///
 		/// Parameters:
@@ -217,6 +210,7 @@ pub mod pallet {
 				sig,
 			)
 		}
+		
 	}
 
 	impl<T: Config> Pallet<T> {
@@ -282,11 +276,12 @@ pub mod pallet {
 
 			EthereumLink::<T>::mutate(&account, |addrs| {
 				let index = index as usize;
-				// NOTE: allow linking `MAX_ETH_LINKS` eth addresses.
-				if (index >= addrs.len()) && (addrs.len() != MAX_ETH_LINKS) {
-					addrs.push(addr.clone());
-				} else if (index >= addrs.len()) && (addrs.len() == MAX_ETH_LINKS) {
-					addrs[MAX_ETH_LINKS - 1] = addr.clone();
+				let addrs_len = addrs.len();
+				// NOTE: allow linking `MaxLinkedAccountNumber` eth addresses.
+				if (index >= addrs_len) && (addrs.len() != T::MaxLinkedAccountNumber::get() as usize) {
+					let _ = addrs.try_insert(index, addr.clone());
+				} else if (index >= addrs_len) && (addrs_len == T::MaxLinkedAccountNumber::get() as usize) {
+					addrs[T::MaxLinkedAccountNumber::get() as usize - 1] = addr.clone();
 				} else {
 					addrs[index] = addr.clone();
 				}
@@ -369,10 +364,11 @@ pub mod pallet {
 			// insert new linked account into storage
 			SubLink::<T>::mutate(&account, |addrs| {
 				let index = index as usize;
-				if (index >= addrs.len()) && (addrs.len() != MAX_SUB_LINKS) {
-					addrs.push(new_address.clone());
-				} else if (index >= addrs.len()) && (addrs.len() == MAX_SUB_LINKS) {
-					addrs[MAX_SUB_LINKS - 1] = new_address.clone();
+				let addrs_len = addrs.len();
+				if (index >= addrs_len) && (addrs_len != T::MaxLinkedAccountNumber::get() as usize) {
+					let _ = addrs.try_insert(index, new_address.clone());
+				} else if (index >= addrs_len) && (addrs_len == T::MaxLinkedAccountNumber::get() as usize) {
+					addrs[T::MaxLinkedAccountNumber::get() as usize - 1] = new_address.clone();
 				} else {
 					addrs[index] = new_address.clone();
 				}
